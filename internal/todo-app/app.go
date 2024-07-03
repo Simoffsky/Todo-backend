@@ -12,8 +12,9 @@ import (
 )
 
 type App struct {
-	config *config.Config
-	logger log.Logger
+	config      *config.Config
+	logger      log.Logger
+	authService AuthService
 }
 
 func NewApp(config *config.Config) *App {
@@ -38,6 +39,11 @@ func (a *App) configureApp() error {
 
 	a.logger.Debug("Config parameters: " + fmt.Sprintf("%+v", a.config))
 
+	var err error
+	a.authService, err = NewAuthServiceGRPC(a.config.AuthAddr, a.config.JwtSecret)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
