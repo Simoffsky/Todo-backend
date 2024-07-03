@@ -66,6 +66,12 @@ func (a *App) handleGetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = a.checkPermission(r, id)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
 	task, err := a.taskRepository.GetTask(id)
 	if err != nil {
 		a.handleError(w, err)
@@ -87,6 +93,13 @@ func (a *App) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
 		a.handleError(w, err)
 		return
 	}
+
+	err = a.checkPermission(r, id)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
 	err = a.taskRepository.DeleteTask(id)
 	if err != nil {
 		a.handleError(w, err)
@@ -97,6 +110,12 @@ func (a *App) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleUpdateTask(w http.ResponseWriter, r *http.Request) {
 	id, err := getIdByRequest(r)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	err = a.checkPermission(r, id)
 	if err != nil {
 		a.handleError(w, err)
 		return
@@ -120,6 +139,42 @@ func (a *App) handleUpdateTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (a *App) handleRegister(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		a.writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	a.logger.Debug("sending gRPC request(register) with login: " + user.Login)
+	if err := a.authService.Register(user); err != nil {
+		a.handleError(w, err)
+		return
+	}
+	fmt.Println("Registered successfully")
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (a *App) handleLogin(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		a.writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	a.logger.Debug("sending gRPC request(login) with login: " + user.Login)
+	token, err := a.authService.Login(user)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	w.Header().Set("Authorization", token)
+	w.WriteHeader(http.StatusOK)
+
+}
+
 func (a *App) handleError(w http.ResponseWriter, err error) {
 	var modelErr models.Error
 	if !errors.As(err, &modelErr) {
@@ -134,6 +189,23 @@ func (a *App) writeError(w http.ResponseWriter, statusCode int, err error) {
 	http.Error(w, err.Error(), statusCode)
 }
 
+func (a *App) checkPermission(r *http.Request, taskId int) error {
+	login, err := getLoginByRequest(r)
+	if err != nil {
+		return err
+	}
+
+	task, err := a.taskRepository.GetTask(taskId)
+	if err != nil {
+		return err
+	}
+
+	if task.Owner != login {
+		return models.ErrAccessDenied
+	}
+
+	return nil
+}
 func getIdByRequest(r *http.Request) (int, error) {
 	idPath := r.PathValue("task_id")
 	id, err := strconv.Atoi(idPath)
@@ -141,4 +213,12 @@ func getIdByRequest(r *http.Request) (int, error) {
 		return 0, models.NewError(err, http.StatusBadRequest)
 	}
 	return id, nil
+}
+
+func getLoginByRequest(r *http.Request) (string, error) {
+	login, ok := r.Context().Value("login").(string)
+	if !ok {
+		return "", models.NewError(errors.New("login not found in context"), http.StatusInternalServerError)
+	}
+	return login, nil
 }

@@ -14,6 +14,7 @@ import (
 func (s *AuthServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	err := s.service.Register(in.Login, in.Password)
 	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed to register user: %s, error: %s", in.Login, err.Error()))
 		if errors.Is(err, models.ErrUserExists) {
 			return nil, status.Error(codes.AlreadyExists, models.ErrUserExists.Error())
 		}
@@ -26,13 +27,14 @@ func (s *AuthServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.
 func (s *AuthServer) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
 	token, err := s.service.Login(in.Login, in.Password)
 	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed to login user: %s, error: %s", in.Login, err.Error()))
 		if errors.Is(err, models.ErrInvalidPassword) {
 			return nil, status.Error(codes.Unauthenticated, "invalid password")
 		}
 		if errors.Is(err, models.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, "user not found")
 		}
-		// Обработка других возможных ошибок
+
 		return nil, status.Error(codes.Internal, "internal server error")
 	}
 

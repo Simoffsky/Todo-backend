@@ -27,4 +27,10 @@ var (
 	ErrInvalidPassword = NewError(errors.New("invalid password"), http.StatusUnauthorized)
 
 	ErrTaskNotFound = NewError(errors.New("task not found"), http.StatusNotFound)
+
+	ErrUnauthorized = NewError(errors.New("unauthorized"), http.StatusUnauthorized)
+	ErrInvalidToken = NewError(errors.New("invalid token"), http.StatusUnauthorized)
+	ErrTokenExpired = NewError(errors.New("token expired"), http.StatusUnauthorized)
+
+	ErrAccessDenied = NewError(errors.New("access denied"), http.StatusForbidden)
 )
