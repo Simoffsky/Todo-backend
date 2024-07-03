@@ -15,6 +15,8 @@ func (a *App) handleTask(w http.ResponseWriter, r *http.Request) {
 		a.handleGetTask(w, r)
 	case http.MethodDelete:
 		a.handleDeleteTask(w, r)
+	case http.MethodPut:
+		a.handleUpdateTask(w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_, err := w.Write([]byte("Method not allowed"))
@@ -58,10 +60,9 @@ func (a *App) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleGetTask(w http.ResponseWriter, r *http.Request) {
-	idPath := r.PathValue("task_id")
-	id, err := strconv.Atoi(idPath)
+	id, err := getIdByRequest(r)
 	if err != nil {
-		a.handleError(w, models.NewError(err, http.StatusBadRequest))
+		a.handleError(w, err)
 		return
 	}
 
@@ -81,10 +82,9 @@ func (a *App) handleGetTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
-	idPath := r.PathValue("task_id")
-	id, err := strconv.Atoi(idPath)
+	id, err := getIdByRequest(r)
 	if err != nil {
-		a.handleError(w, models.NewError(err, http.StatusBadRequest))
+		a.handleError(w, err)
 		return
 	}
 	err = a.taskRepository.DeleteTask(id)
@@ -92,6 +92,31 @@ func (a *App) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
 		a.handleError(w, err)
 		return
 	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (a *App) handleUpdateTask(w http.ResponseWriter, r *http.Request) {
+	id, err := getIdByRequest(r)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	var task models.Task
+	err = json.NewDecoder(r.Body).Decode(&task)
+	if err != nil {
+		a.handleError(w, models.NewError(err, http.StatusBadRequest))
+		return
+	}
+
+	task.ID = id
+
+	err = a.taskRepository.UpdateTask(task)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -107,4 +132,13 @@ func (a *App) handleError(w http.ResponseWriter, err error) {
 func (a *App) writeError(w http.ResponseWriter, statusCode int, err error) {
 	a.logger.Error(fmt.Sprintf("HTTP error(%d): %s", statusCode, err.Error()))
 	http.Error(w, err.Error(), statusCode)
+}
+
+func getIdByRequest(r *http.Request) (int, error) {
+	idPath := r.PathValue("task_id")
+	id, err := strconv.Atoi(idPath)
+	if err != nil {
+		return 0, models.NewError(err, http.StatusBadRequest)
+	}
+	return id, nil
 }

@@ -6,6 +6,5 @@ type TaskRepository interface {
 	CreateTask(task models.Task) (int, error)
 	GetTask(id int) (models.Task, error)
 	DeleteTask(id int) error
+	UpdateTask(task models.Task) error
 }
-
-

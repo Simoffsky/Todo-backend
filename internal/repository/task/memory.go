@@ -53,3 +53,16 @@ func (r *InMemoryTaskRepository) DeleteTask(id int) error {
 	delete(r.tasks, id)
 	return nil
 }
+
+func (r *InMemoryTaskRepository) UpdateTask(updatedTask models.Task) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	_, exists := r.tasks[updatedTask.ID]
+	if !exists {
+		return models.ErrTaskNotFound
+	}
+
+	r.tasks[updatedTask.ID] = updatedTask
+	return nil
+}
