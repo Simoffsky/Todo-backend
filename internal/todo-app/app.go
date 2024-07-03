@@ -11,6 +11,8 @@ import (
 	"todo/internal/repository"
 	"todo/internal/repository/task"
 	"todo/pkg/log"
+
+	"github.com/go-redis/redis"
 )
 
 type App struct {
@@ -55,9 +57,23 @@ func (a *App) configureApp() error {
 	}
 	a.logger.Info("Connected to DB")
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     a.config.RedisAddr,
+		Password: "",
+		DB:       0,
+	})
+
+	err = redisClient.Ping().Err()
+
+	if err != nil {
+		return err
+	}
+
+	a.logger.Info("Connected to Redis")
+
 	taskRepo := task.NewPostgresTaskRepository(db)
 	taskListRepo := task.NewPostgresTaskListRepository(db)
-	a.taskService = NewTaskService(taskRepo, taskListRepo)
+	a.taskService = NewTaskService(taskRepo, taskListRepo, redisClient)
 	return nil
 }
 

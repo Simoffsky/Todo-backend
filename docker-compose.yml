@@ -20,3 +20,12 @@ services:
       POSTGRES_DB: todo
     volumes:
       - ./database:/var/lib/postgresql/data
+  
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    restart: always
+    networks:
+      - main
+    ports:
+      - 6379:6379

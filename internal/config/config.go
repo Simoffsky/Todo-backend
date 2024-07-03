@@ -13,4 +13,6 @@ type Config struct {
 	JwtSecret string
 
 	DbConn string
+
+	RedisAddr string
 }

@@ -1,8 +1,12 @@
 package todoapp
 
 import (
+	"encoding/json"
+	"fmt"
 	"todo/internal/models"
 	repository "todo/internal/repository/task"
+
+	"github.com/go-redis/redis"
 )
 
 type TaskService interface {
@@ -20,12 +24,14 @@ type TaskService interface {
 type TaskServiceDefault struct {
 	taskRepo     repository.TaskRepository
 	taskListRepo repository.TaskListRepository
+	redisClient  *redis.Client
 }
 
-func NewTaskService(repo repository.TaskRepository, listRepo repository.TaskListRepository) *TaskServiceDefault {
+func NewTaskService(repo repository.TaskRepository, listRepo repository.TaskListRepository, redisClient *redis.Client) *TaskServiceDefault {
 	return &TaskServiceDefault{
 		taskRepo:     repo,
 		taskListRepo: listRepo,
+		redisClient:  redisClient,
 	}
 }
 
@@ -46,17 +52,46 @@ func (s *TaskServiceDefault) UpdateTask(task models.Task) error {
 }
 
 func (s *TaskServiceDefault) CreateTaskList(list models.TaskList) (int, error) {
-	return s.taskListRepo.CreateTaskList(list)
+	id, err := s.taskListRepo.CreateTaskList(list)
+	if err != nil {
+		return 0, err
+	}
+	list.ID = id
+
+	jsonList, _ := json.Marshal(list)
+	s.redisClient.Set(fmt.Sprintf("taskList:%d", id), jsonList, 0)
+	return id, nil
+}
+
+func (s *TaskServiceDefault) UpdateTaskList(list models.TaskList) error {
+	err := s.taskListRepo.UpdateTaskList(list)
+	if err != nil {
+		return err
+	}
+
+	jsonList, _ := json.Marshal(list)
+	s.redisClient.Set(fmt.Sprintf("taskList:%d", list.ID), jsonList, 0)
+	return nil
 }
 
 func (s *TaskServiceDefault) GetTaskList(id int) (models.TaskList, error) {
+	val, err := s.redisClient.Get(fmt.Sprintf("taskList:%d", id)).Result()
+	if err == nil {
+		var list models.TaskList
+		err := json.Unmarshal([]byte(val), &list)
+		if err != nil {
+			return models.TaskList{}, err
+		}
+		return list, nil
+	}
 	return s.taskListRepo.GetTaskList(id)
 }
 
 func (s *TaskServiceDefault) DeleteTaskList(id int) error {
-	return s.taskListRepo.DeleteTaskList(id)
-}
-
-func (s *TaskServiceDefault) UpdateTaskList(list models.TaskList) error {
-	return s.taskListRepo.UpdateTaskList(list)
+	err := s.taskListRepo.DeleteTaskList(id)
+	if err != nil {
+		return err
+	}
+	s.redisClient.Del(fmt.Sprintf("taskList:%d", id))
+	return nil
 }
