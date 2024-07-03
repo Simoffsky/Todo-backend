@@ -68,6 +68,7 @@ func (a *App) startHTTPServer() error {
 
 func (a *App) registerHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/task", a.handleCreateTask)
+	mux.HandleFunc("/task/{task_id}", a.handleGetTask)
 }
 
 // Starts HTTP Server with graceful shutdown

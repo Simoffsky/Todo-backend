@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"todo/internal/models"
 )
 
 func (a *App) handleTask(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		a.handleCreateTask(w, r)
+		a.handleGetTask(w, r)
 
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -54,6 +55,30 @@ func (a *App) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (a *App) handleGetTask(w http.ResponseWriter, r *http.Request) {
+	idPath := r.PathValue("task_id")
+	id, err := strconv.Atoi(idPath)
+	if err != nil {
+		a.handleError(w, models.NewError(err, http.StatusBadRequest))
+		return
+	}
+
+	task, err := a.taskRepository.GetTask(id)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(w).Encode(task)
+	if err != nil {
+		a.handleError(w, models.NewError(err, http.StatusInternalServerError))
+		return
+	}
+}
+
 
 func (a *App) handleError(w http.ResponseWriter, err error) {
 	var modelErr models.Error
