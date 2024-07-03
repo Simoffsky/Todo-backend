@@ -14,6 +14,7 @@ type TaskService interface {
 	CreateTaskList(list models.TaskList) (int, error)
 	GetTaskList(id int) (models.TaskList, error)
 	DeleteTaskList(id int) error
+	UpdateTaskList(list models.TaskList) error
 }
 
 type TaskServiceDefault struct {

@@ -235,6 +235,37 @@ func (a *App) handleDeleteTaskList(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (a *App) handleUpdateTaskList(w http.ResponseWriter, r *http.Request) {
+	id, err := getIdByRequest(r)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	err = a.checkTaskListPermission(r, id)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	var taskList models.TaskList
+	err = json.NewDecoder(r.Body).Decode(&taskList)
+	if err != nil {
+		a.handleError(w, models.NewError(err, http.StatusBadRequest))
+		return
+	}
+
+	taskList.ID = id
+
+	err = a.taskService.UpdateTaskList(taskList)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (a *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 
