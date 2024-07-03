@@ -13,7 +13,8 @@ func (a *App) handleTask(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		a.handleGetTask(w, r)
-
+	case http.MethodDelete:
+		a.handleDeleteTask(w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		_, err := w.Write([]byte("Method not allowed"))
@@ -79,6 +80,20 @@ func (a *App) handleGetTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *App) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
+	idPath := r.PathValue("task_id")
+	id, err := strconv.Atoi(idPath)
+	if err != nil {
+		a.handleError(w, models.NewError(err, http.StatusBadRequest))
+		return
+	}
+	err = a.taskRepository.DeleteTask(id)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
 
 func (a *App) handleError(w http.ResponseWriter, err error) {
 	var modelErr models.Error
