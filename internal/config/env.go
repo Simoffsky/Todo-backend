@@ -17,6 +17,9 @@ func NewEnvConfig() *Config {
 		LoggerLevel: getEnv("LOGGER_LEVEL", "DEBUG"),
 		HTTPTimeout: time.Duration(getEnvAsInt("HTTP_TIMEOUT", 5)) * time.Second,
 		ServerPort:  getEnv("SERVER_PORT", "8080"),
+		AuthAddr:    getEnv("AUTH_GRPC_ADDR", "localhost:50052"),
+		JwtSecret:   getEnv("JWT_SECRET", "secret"),
+		DbConn:      getEnv("DB_CONN", "user=postgres password=postgres port=5432 host=localhost dbname=todo sslmode=disable"),
 	}
 }
 

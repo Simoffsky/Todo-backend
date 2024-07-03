@@ -2,6 +2,7 @@ package todoapp
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,7 +36,7 @@ func (a *App) configureApp() error {
 		log.LevelFromString(a.config.LoggerLevel),
 	).WithTimePrefix(time.DateTime)
 
-	a.logger.Debug("Config parameters: " + a.config.String())
+	a.logger.Debug("Config parameters: " + fmt.Sprintf("%+v", a.config))
 
 	return nil
 }
