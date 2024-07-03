@@ -1,0 +1,22 @@
+version: '3'
+name: 'todo'
+
+networks:
+  main:
+    driver: bridge
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:13-alpine
+    restart: always
+    networks:
+      - main
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: todo
+    volumes:
+      - ./database:/var/lib/postgresql/data
