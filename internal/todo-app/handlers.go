@@ -28,8 +28,8 @@ func (a *App) handleTaskList(w http.ResponseWriter, r *http.Request) {
 		a.handleGetTaskList(w, r)
 	case http.MethodDelete:
 		a.handleDeleteTaskList(w, r)
-	// case http.MethodPut:
-	// 	a.handleUpdateTaskList(w, r)
+	case http.MethodPut:
+		a.handleUpdateTaskList(w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
