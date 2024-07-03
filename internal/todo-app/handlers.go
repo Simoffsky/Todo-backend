@@ -40,7 +40,14 @@ func (a *App) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := a.taskRepository.CreateTask(task)
+	login, err := getLoginByRequest(r)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+	task.Owner = login
+
+	id, err := a.taskService.CreateTask(task)
 	if err != nil {
 		a.handleError(w, err)
 		return
@@ -72,7 +79,7 @@ func (a *App) handleGetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := a.taskRepository.GetTask(id)
+	task, err := a.taskService.GetTask(id)
 	if err != nil {
 		a.handleError(w, err)
 		return
@@ -100,7 +107,7 @@ func (a *App) handleDeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.taskRepository.DeleteTask(id)
+	err = a.taskService.DeleteTask(id)
 	if err != nil {
 		a.handleError(w, err)
 		return
@@ -130,7 +137,7 @@ func (a *App) handleUpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	task.ID = id
 
-	err = a.taskRepository.UpdateTask(task)
+	err = a.taskService.UpdateTask(task)
 	if err != nil {
 		a.handleError(w, err)
 		return
@@ -195,7 +202,7 @@ func (a *App) checkPermission(r *http.Request, taskId int) error {
 		return err
 	}
 
-	task, err := a.taskRepository.GetTask(taskId)
+	task, err := a.taskService.GetTask(taskId)
 	if err != nil {
 		return err
 	}
@@ -216,7 +223,7 @@ func getIdByRequest(r *http.Request) (int, error) {
 }
 
 func getLoginByRequest(r *http.Request) (string, error) {
-	login, ok := r.Context().Value("login").(string)
+	login, ok := r.Context().Value(LoginKey("login")).(string)
 	if !ok {
 		return "", models.NewError(errors.New("login not found in context"), http.StatusInternalServerError)
 	}

@@ -13,10 +13,10 @@ import (
 )
 
 type App struct {
-	config         *config.Config
-	logger         log.Logger
-	authService    AuthService
-	taskRepository repository.TaskRepository
+	config      *config.Config
+	logger      log.Logger
+	authService AuthService
+	taskService TaskService
 }
 
 func NewApp(config *config.Config) *App {
@@ -47,7 +47,8 @@ func (a *App) configureApp() error {
 		return err
 	}
 
-	a.taskRepository = repository.NewInMemoryTaskRepository()
+	taskRepo := repository.NewInMemoryTaskRepository()
+	a.taskService = NewTaskService(taskRepo)
 	return nil
 }
 
@@ -67,7 +68,7 @@ func (a *App) startHTTPServer() error {
 }
 
 func (a *App) registerHandlers(mux *http.ServeMux) {
-	mux.HandleFunc("/task", a.handleCreateTask)
+	mux.Handle("/task", a.ProtectMiddleware(http.HandlerFunc(a.handleCreateTask)))
 	mux.Handle("/task/{task_id}", a.ProtectMiddleware(http.HandlerFunc(a.handleTask)))
 	mux.HandleFunc("/register", a.handleRegister)
 	mux.HandleFunc("/login", a.handleLogin)

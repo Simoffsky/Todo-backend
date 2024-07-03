@@ -7,6 +7,8 @@ import (
 	"todo/internal/models"
 )
 
+type LoginKey string
+
 func (a *App) ProtectMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
@@ -21,8 +23,7 @@ func (a *App) ProtectMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		type contextKey string
-		const loginKey contextKey = "login"
+		const loginKey LoginKey = "login"
 		ctx := context.WithValue(r.Context(), loginKey, login)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
