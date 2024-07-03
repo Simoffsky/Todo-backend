@@ -10,30 +10,52 @@ type TaskService interface {
 	GetTask(id int) (models.Task, error)
 	DeleteTask(id int) error
 	UpdateTask(task models.Task) error
+
+	CreateTaskList(list models.TaskList) (int, error)
+	GetTaskList(id int) (models.TaskList, error)
+	DeleteTaskList(id int) error
 }
 
 type TaskServiceDefault struct {
-	repo repository.TaskRepository
+	taskRepo     repository.TaskRepository
+	taskListRepo repository.TaskListRepository
 }
 
-func NewTaskService(repo repository.TaskRepository) *TaskServiceDefault {
+func NewTaskService(repo repository.TaskRepository, listRepo repository.TaskListRepository) *TaskServiceDefault {
 	return &TaskServiceDefault{
-		repo: repo,
+		taskRepo:     repo,
+		taskListRepo: listRepo,
 	}
 }
 
 func (s *TaskServiceDefault) CreateTask(task models.Task) (int, error) {
-	return s.repo.CreateTask(task)
+	return s.taskRepo.CreateTask(task)
 }
 
 func (s *TaskServiceDefault) GetTask(id int) (models.Task, error) {
-	return s.repo.GetTask(id)
+	return s.taskRepo.GetTask(id)
 }
 
 func (s *TaskServiceDefault) DeleteTask(id int) error {
-	return s.repo.DeleteTask(id)
+	return s.taskRepo.DeleteTask(id)
 }
 
 func (s *TaskServiceDefault) UpdateTask(task models.Task) error {
-	return s.repo.UpdateTask(task)
+	return s.taskRepo.UpdateTask(task)
+}
+
+func (s *TaskServiceDefault) CreateTaskList(list models.TaskList) (int, error) {
+	return s.taskListRepo.CreateTaskList(list)
+}
+
+func (s *TaskServiceDefault) GetTaskList(id int) (models.TaskList, error) {
+	return s.taskListRepo.GetTaskList(id)
+}
+
+func (s *TaskServiceDefault) DeleteTaskList(id int) error {
+	return s.taskListRepo.DeleteTaskList(id)
+}
+
+func (s *TaskServiceDefault) UpdateTaskList(list models.TaskList) error {
+	return s.taskListRepo.UpdateTaskList(list)
 }

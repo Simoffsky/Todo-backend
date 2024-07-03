@@ -13,8 +13,9 @@ import (
 )
 
 type App struct {
-	config      *config.Config
-	logger      log.Logger
+	config *config.Config
+	logger log.Logger
+
 	authService AuthService
 	taskService TaskService
 }
@@ -48,7 +49,8 @@ func (a *App) configureApp() error {
 	}
 
 	taskRepo := repository.NewInMemoryTaskRepository()
-	a.taskService = NewTaskService(taskRepo)
+	taskListRepo := repository.NewInMemoryTaskListRepository()
+	a.taskService = NewTaskService(taskRepo, taskListRepo)
 	return nil
 }
 
@@ -70,6 +72,9 @@ func (a *App) startHTTPServer() error {
 func (a *App) registerHandlers(mux *http.ServeMux) {
 	mux.Handle("/task", a.ProtectMiddleware(http.HandlerFunc(a.handleCreateTask)))
 	mux.Handle("/task/{task_id}", a.ProtectMiddleware(http.HandlerFunc(a.handleTask)))
+
+	mux.Handle("/task-list", a.ProtectMiddleware(http.HandlerFunc(a.handleCreateTaskList)))
+	mux.Handle("/task-list/{task_id}", a.ProtectMiddleware(http.HandlerFunc(a.handleTaskList)))
 	mux.HandleFunc("/register", a.handleRegister)
 	mux.HandleFunc("/login", a.handleLogin)
 }
