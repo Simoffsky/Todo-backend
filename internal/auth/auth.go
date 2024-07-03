@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"todo/internal/config"
+	"todo/internal/repository"
 	"todo/internal/repository/auth"
 	"todo/pkg/log"
 	pb "todo/pkg/proto/auth"
@@ -76,7 +77,7 @@ func (s *AuthServer) Start() error {
 
 func (s *AuthServer) configure() error {
 
-	dbPool, err := auth.ConnectToDB(s.config.DbConn)
+	dbPool, err := repository.ConnectToDB(s.config.DbConn)
 	if err != nil {
 		return err
 	}

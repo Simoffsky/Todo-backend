@@ -8,7 +8,8 @@ import (
 	"os/signal"
 	"time"
 	"todo/internal/config"
-	repository "todo/internal/repository/task"
+	"todo/internal/repository"
+	"todo/internal/repository/task"
 	"todo/pkg/log"
 )
 
@@ -48,8 +49,14 @@ func (a *App) configureApp() error {
 		return err
 	}
 
-	taskRepo := repository.NewInMemoryTaskRepository()
-	taskListRepo := repository.NewInMemoryTaskListRepository()
+	db, err := repository.ConnectToDB(a.config.DbConn)
+	if err != nil {
+		return err
+	}
+	a.logger.Info("Connected to DB")
+
+	taskRepo := task.NewPostgresTaskRepository(db)
+	taskListRepo := task.NewInMemoryTaskListRepository()
 	a.taskService = NewTaskService(taskRepo, taskListRepo)
 	return nil
 }
