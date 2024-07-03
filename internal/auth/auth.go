@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -32,7 +31,6 @@ func NewAuthServer(config config.Config) *AuthServer {
 }
 
 func (s *AuthServer) Start() error {
-	fmt.Println("CONFIGG", fmt.Sprintf("%+v", s.config))
 	if err := s.configure(); err != nil {
 		return err
 	}
