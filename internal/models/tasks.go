@@ -9,7 +9,7 @@ type Task struct {
 }
 
 type TaskList struct {
-	ID    int
-	Tasks []Task
-	Owner string // login of the user who owns the list
+	ID    int    `json:"id"`
+	Tasks []Task `json:"tasks"`
+	Owner string `json:"owner"` // login of the user who owns the list
 }
