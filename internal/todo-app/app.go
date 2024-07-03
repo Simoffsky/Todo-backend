@@ -8,13 +8,15 @@ import (
 	"os/signal"
 	"time"
 	"todo/internal/config"
+	repository "todo/internal/repository/task"
 	"todo/pkg/log"
 )
 
 type App struct {
-	config      *config.Config
-	logger      log.Logger
-	authService AuthService
+	config         *config.Config
+	logger         log.Logger
+	authService    AuthService
+	taskRepository repository.TaskRepository
 }
 
 func NewApp(config *config.Config) *App {
@@ -44,18 +46,15 @@ func (a *App) configureApp() error {
 	if err != nil {
 		return err
 	}
+
+	a.taskRepository = repository.NewInMemoryTaskRepository()
 	return nil
 }
 
 func (a *App) startHTTPServer() error {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte("Hello, World!"))
-		if err != nil {
-			a.logger.Error("Error writing response: " + err.Error())
-		}
-	})
+	a.registerHandlers(mux)
 
 	server := &http.Server{
 		Addr:         ":" + a.config.ServerPort,
@@ -65,6 +64,10 @@ func (a *App) startHTTPServer() error {
 	}
 
 	return a.gracefulStart(server)
+}
+
+func (a *App) registerHandlers(mux *http.ServeMux) {
+	mux.HandleFunc("/task", a.handleCreateTask)
 }
 
 // Starts HTTP Server with graceful shutdown

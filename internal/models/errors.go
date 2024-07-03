@@ -25,4 +25,6 @@ var (
 	ErrUserExists      = NewError(errors.New("user already exists"), http.StatusConflict)
 	ErrUserNotFound    = NewError(errors.New("user not found"), http.StatusNotFound)
 	ErrInvalidPassword = NewError(errors.New("invalid password"), http.StatusUnauthorized)
+
+	ErrTaskNotFound = NewError(errors.New("task not found"), http.StatusNotFound)
 )
