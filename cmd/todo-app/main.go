@@ -1,7 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"todo/internal/config"
+	todoapp "todo/internal/todo-app"
+)
 
 func main() {
-	fmt.Println("Hello, world!")
+	config := config.NewEnvConfig()
+
+	app := todoapp.NewApp(config)
+
+	if err := app.Run(); err != nil {
+		log.Fatal(err)
+	}
 }
