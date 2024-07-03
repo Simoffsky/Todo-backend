@@ -56,7 +56,7 @@ func (a *App) configureApp() error {
 	a.logger.Info("Connected to DB")
 
 	taskRepo := task.NewPostgresTaskRepository(db)
-	taskListRepo := task.NewInMemoryTaskListRepository()
+	taskListRepo := task.NewPostgresTaskListRepository(db)
 	a.taskService = NewTaskService(taskRepo, taskListRepo)
 	return nil
 }
