@@ -6,6 +6,37 @@ networks:
     driver: bridge
 
 services:
+
+  todo:
+    container_name: todo
+    build:
+      context: .
+      dockerfile: docker/todo/Dockerfile
+    restart: always
+    depends_on:
+      - auth
+      - redis
+      - postgres
+    networks:
+      - main
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    env_file:
+      - .env
+
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: docker/auth/Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - main
+    env_file:
+      - .env
+    
   postgres:
     container_name: postgres
     image: postgres:13-alpine
