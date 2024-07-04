@@ -11,7 +11,6 @@ type PostgresTaskRepository struct {
 	db *pgxpool.Pool
 }
 
-
 func NewPostgresTaskRepository(db *pgxpool.Pool) *PostgresTaskRepository {
 	return &PostgresTaskRepository{db: db}
 }
@@ -33,10 +32,10 @@ func (r *PostgresTaskRepository) CreateTask(task models.Task) (int, error) {
 func (r *PostgresTaskRepository) GetTask(id int) (models.Task, error) {
 	var task models.Task
 	err := r.db.QueryRow(context.Background(), `
-        SELECT id, title, owner, body, is_done
+        SELECT id, title, owner, body, is_done, task_list_id
         FROM tasks
         WHERE id = $1
-    `, id).Scan(&task.ID, &task.Title, &task.Owner, &task.Body, &task.IsDone)
+    `, id).Scan(&task.ID, &task.Title, &task.Owner, &task.Body, &task.IsDone, &task.TaskListID)
 	if err != nil {
 		return models.Task{}, models.ErrTaskNotFound
 	}
