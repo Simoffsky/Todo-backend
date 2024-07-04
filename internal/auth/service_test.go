@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthService_Register(t *testing.T) {
@@ -85,7 +86,8 @@ func TestAuthService_Login(t *testing.T) {
 			login:    "user@example.com",
 			password: "password",
 			mockSetup: func(m *repository.MockUserRepository) {
-				m.On("GetUser", "user@example.com").Return(&models.User{Login: "user@example.com", Password: "password"}, nil)
+				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+				m.On("GetUser", "user@example.com").Return(&models.User{Login: "user@example.com", Password: string(hashedPassword)}, nil)
 			},
 			expectedError: nil,
 			expectedToken: true,
@@ -95,7 +97,8 @@ func TestAuthService_Login(t *testing.T) {
 			login:    "user@example.com",
 			password: "wrongpassword",
 			mockSetup: func(m *repository.MockUserRepository) {
-				m.On("GetUser", "user@example.com").Return(&models.User{Login: "user@example.com", Password: "password"}, nil)
+				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
+				m.On("GetUser", "user@example.com").Return(&models.User{Login: "user@example.com", Password: string(hashedPassword)}, nil)
 			},
 			expectedError: models.ErrInvalidPassword,
 			expectedToken: false,
