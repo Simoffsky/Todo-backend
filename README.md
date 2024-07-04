@@ -130,6 +130,7 @@ flowchart TB;
     "body": string, - описание задачи 
     "is_done":bool, - выполнена ли задача 
     "owner": string - login создателя
+    "task_list_id": int - id списка задач(если есть)
 }
 ```
 
