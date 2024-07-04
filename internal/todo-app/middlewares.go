@@ -34,3 +34,15 @@ func (a *App) ProtectMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (a *App) BlockWithAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token != "" {
+			a.handleError(w, models.ErrForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

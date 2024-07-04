@@ -98,8 +98,8 @@ func (a *App) registerHandlers(mux *http.ServeMux) {
 
 	mux.Handle("/task-list", a.ProtectMiddleware(http.HandlerFunc(a.handleCreateTaskList)))
 	mux.Handle("/task-list/{task_id}", a.ProtectMiddleware(http.HandlerFunc(a.handleTaskList)))
-	mux.HandleFunc("/register", a.handleRegister)
-	mux.HandleFunc("/login", a.handleLogin)
+	mux.Handle("/register", a.BlockWithAuthMiddleware(http.HandlerFunc(a.handleRegister)))
+	mux.Handle("/login", a.BlockWithAuthMiddleware(http.HandlerFunc(a.handleLogin)))
 }
 
 // Starts HTTP Server with graceful shutdown
