@@ -7,6 +7,7 @@ import (
 	"todo/pkg/log"
 
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService interface {
@@ -38,9 +39,14 @@ func (s *AuthServiceDefault) Register(login, password string) error {
 		return models.ErrUserExists
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
 	user := &models.User{
 		Login:    login,
-		Password: password,
+		Password: string(hashedPassword),
 	}
 	s.logger.Debug("Registered user: " + login)
 	return s.repo.CreateUser(user)
@@ -52,7 +58,8 @@ func (s *AuthServiceDefault) Login(login, password string) (string, error) {
 		return "", err
 	}
 
-	if user.Password != password {
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
 		return "", models.ErrInvalidPassword
 	}
 
