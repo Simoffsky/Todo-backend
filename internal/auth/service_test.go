@@ -138,3 +138,63 @@ func TestAuthService_Login(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthService_UserExists(t *testing.T) {
+	tests := []struct {
+		name           string
+		login          string
+		mockSetup      func(*repository.MockUserRepository)
+		expectedError  error
+		expectedExists bool
+	}{
+		{
+			name:  "user exists",
+			login: "existing",
+			mockSetup: func(m *repository.MockUserRepository) {
+				m.On("Exists", "existing").Return(true, nil)
+			},
+			expectedError:  nil,
+			expectedExists: true,
+		},
+		{
+			name:  "user does not exist",
+			login: "nonexisting",
+			mockSetup: func(m *repository.MockUserRepository) {
+				m.On("Exists", "nonexisting").Return(false, nil)
+			},
+			expectedError:  nil,
+			expectedExists: false,
+		},
+		{
+			name:  "repository error",
+			login: "aboba",
+			mockSetup: func(m *repository.MockUserRepository) {
+				m.On("Exists", "aboba").Return(false, errors.New("unexpected error"))
+			},
+			expectedError:  errors.New("unexpected error"),
+			expectedExists: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := new(repository.MockUserRepository)
+			logger := &log.MockLogger{}
+			service := NewDefaultAuthService(logger, mockRepo, "secret")
+
+			tt.mockSetup(mockRepo)
+
+			exists, err := service.UserExists(tt.login)
+
+			if tt.expectedError != nil {
+				assert.EqualError(t, err, tt.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedExists, exists)
+			}
+
+			mockRepo.AssertExpectations(t)
+		})
+	}
+
+}

@@ -17,3 +17,8 @@ func (m *MockAuthService) Login(login, password string) (string, error) {
 	args := m.Called(login, password)
 	return args.String(0), args.Error(1)
 }
+
+func (m *MockAuthService) UserExists(login string) (bool, error) {
+	args := m.Called(login)
+	return args.Bool(0), args.Error(1)
+}

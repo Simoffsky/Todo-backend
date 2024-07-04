@@ -18,7 +18,13 @@ func (a *App) ProtectMiddleware(next http.Handler) http.Handler {
 		}
 
 		login, err := jwt.ParseJWT(token, a.config.JwtSecret)
-		if err != nil {
+		if err != nil || login == "" {
+			a.handleError(w, models.ErrUnauthorized)
+			return
+		}
+
+		userExists, err := a.authService.UserExists(login)
+		if err != nil || !userExists {
 			a.handleError(w, models.ErrUnauthorized)
 			return
 		}

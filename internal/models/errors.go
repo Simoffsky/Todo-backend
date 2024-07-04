@@ -35,4 +35,6 @@ var (
 	ErrTokenExpired = NewError(errors.New("token expired"), http.StatusUnauthorized)
 
 	ErrAccessDenied = NewError(errors.New("access denied"), http.StatusForbidden)
+
+	ErrForbidden = NewError(errors.New("forbidden"), http.StatusForbidden)
 )

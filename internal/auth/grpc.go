@@ -41,3 +41,14 @@ func (s *AuthServer) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginR
 	s.logger.Debug(fmt.Sprintf("Sending gRPC response with token for user: %s", in.Login))
 	return &pb.LoginResponse{Token: token}, nil
 }
+
+func (s *AuthServer) UserExists(ctx context.Context, in *pb.UserExistsRequest) (*pb.UserExistsResponse, error) {
+	exists, err := s.service.UserExists(in.Login)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("Failed to check if user exists: %s, error: %s", in.Login, err.Error()))
+		return nil, status.Error(codes.Internal, "internal server error")
+	}
+
+	s.logger.Debug(fmt.Sprintf("Sending gRPC response to check if user exists: %s", in.Login))
+	return &pb.UserExistsResponse{Exists: exists}, nil
+}

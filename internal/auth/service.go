@@ -12,6 +12,7 @@ import (
 type AuthService interface {
 	Register(login, password string) error
 	Login(login, password string) (string, error)
+	UserExists(login string) (bool, error)
 }
 
 type AuthServiceDefault struct {
@@ -68,4 +69,8 @@ func (s *AuthServiceDefault) Login(login, password string) (string, error) {
 
 	s.logger.Debug("User logged in: " + login)
 	return signedToken, nil
+}
+
+func (s *AuthServiceDefault) UserExists(login string) (bool, error) {
+	return s.repo.Exists(login)
 }

@@ -14,6 +14,7 @@ import (
 type AuthService interface {
 	Register(models.User) error
 	Login(models.User) (string, error)
+	UserExists(string) (bool, error)
 }
 
 type AuthServiceGRPC struct {
@@ -69,4 +70,20 @@ func (s *AuthServiceGRPC) Login(user models.User) (string, error) {
 	}
 
 	return resp.Token, nil
+}
+
+func (s *AuthServiceGRPC) UserExists(login string) (bool, error) {
+	_, err := s.authClient.UserExists(context.Background(), &pb.UserExistsRequest{
+		Login: login,
+	})
+
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.NotFound {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }
