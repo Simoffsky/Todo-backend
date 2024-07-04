@@ -279,7 +279,14 @@ func (a *App) handleRegister(w http.ResponseWriter, r *http.Request) {
 		a.handleError(w, err)
 		return
 	}
-	fmt.Println("Registered successfully")
+
+	token, err := a.authService.Login(user)
+	if err != nil {
+		a.handleError(w, err)
+		return
+	}
+
+	w.Header().Set("Authorization", token)
 	w.WriteHeader(http.StatusCreated)
 }
 
